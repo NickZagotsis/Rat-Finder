@@ -1,0 +1,208 @@
+{% extends 'base.jinja' %}
+{% block content %}
+{#{{ logs }}#}
+{##}
+{##}
+{#{{ connections }}#}
+{##}
+{#{{ rollout }}#}
+
+<div class="mt-4">
+<h1 class="text-center">Forensic Report</h1>
+
+<!-- Teamviewer Section -->
+<h2 class="text-left">TeamViewer</h2>
+
+{% if users and not full%}
+<div class="mt-4">
+    {% for user, rats in users.items() %}
+        <h3 class="mt-4">User: {{ user }}</h3>
+            <h5 class="mt-3">TeamViewer</h5>
+            <table class="table table-striped table-bordered display" id="table1">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field, value in rats.get("TeamViewer", {}).items() %}
+                    <tr>
+                        <td>{{ field }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if attributed %}
+<h3 class="mt-4">Connections</h3>
+    <table class="table table-striped table-bordered display" id="table_attributed">
+        <thead class="table-dark">
+            <tr>
+                    <th>User</th>
+                    <th>Related Log Lines</th>
+                    <th>Countries connected from</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in attributed.keys() %}
+               <tr>
+               {% if user %}
+                   <td><a href="data\\{{ user.replace('<', '_').replace('>', '_').replace(':', '_').replace('"', '_') .replace('/', '_').replace('\\', '_') .replace('|', '_').replace('?', '_').replace('*', '_')
+ }}\\{{ user }}.html">{{ user.replace('<', '_').replace('>', '_').replace(':', '_').replace('"', '_') .replace('/', '_').replace('\\', '_') .replace('|', '_').replace('?', '_').replace('*', '_')
+ }}</a></td>
+               {% else %}
+                   <td><a href="data\\Unknown\\Unknown.html">Unknown</a></td>
+               {% endif %}
+               <td>{{ attributed[user] | length }}</td>
+               <td>
+                   {{ ips.get(user) }}
+               </td>
+               </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if connections %}
+    <h3 class="mt-4">Connections</h3>
+    <table class="table table-striped table-bordered display" id="table3">
+        <thead class="table-dark">
+            <tr>
+                        <th>ConnectorTeamViewerID</th>
+                        <th>ConnectorFullName</th>
+                        <th>TimestampStart</th>
+                        <th>TimestampFinish</th>
+                        <th>LocalMachineUser</th>
+                        <th>ConnectionType</th>
+                        <th>UnknownIdentifier</th>
+                        <th>Direction </th>
+                        <th>FileFound</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for connection in connections %}
+                <tr>
+                {% for key in connection.keys() %}
+                    <td>{{ connection.get(key) }}</td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if rollout %}
+<br>
+    <div class="alert alert-info">
+        <p class="lead">
+            A rollout file was detected. The system appears to use the following TeamViewer ID{{ rollout|length > 1 and 's' or '' }}:
+        </p>
+        <ul>
+            {% for rollout_single in rollout %}
+                <li>{{ rollout_single.get("TeamViewerID") }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif%}
+</div>
+
+{% endblock %}
+{% block javascript %}
+{{ super() }}
+
+    <script>
+        $(document).ready(function() {
+            $('#table1').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [], // Prevent initial ordering if you want raw data
+                language: {
+                    search: "Quick search:", // Custom search box text
+                    lengthMenu: "Display _MENU_ entries per page",
+                    zeroRecords: "No matching records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#table2').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [], // Prevent initial ordering if you want raw data
+                language: {
+                    search: "Quick search:", // Custom search box text
+                    lengthMenu: "Display _MENU_ entries per page",
+                    zeroRecords: "No matching records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#table_attributed').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [], // Prevent initial ordering if you want raw data
+                language: {
+                    search: "Quick search:", // Custom search box text
+                    lengthMenu: "Display _MENU_ entries per page",
+                    zeroRecords: "No matching records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                }
+            });
+        });
+        $(document).ready(function() {
+            $('#table3').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [], // Prevent initial ordering if you want raw data
+                language: {
+                    search: "Quick search:", // Custom search box text
+                    lengthMenu: "Display _MENU_ entries per page",
+                    zeroRecords: "No matching records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#table4').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [], // Prevent initial ordering if you want raw data
+                language: {
+                    search: "Quick search:", // Custom search box text
+                    lengthMenu: "Display _MENU_ entries per page",
+                    zeroRecords: "No matching records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                }
+            });
+        });
+    </script>
+{% endblock %}

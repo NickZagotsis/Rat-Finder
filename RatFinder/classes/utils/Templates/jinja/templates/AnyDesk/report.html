@@ -1,0 +1,224 @@
+{% extends 'base.jinja' %}
+{% block content %}
+<div class="mt-4">
+    <h1 class="text-center">Forensic Report</h1>
+
+    <!-- Anydesk Section -->
+    <h2 class="text-left">Anydesk</h2>
+
+    {% if users and not full%}
+    <div class="mt-4">
+        {% for user, rats in users.items() %}
+            <h3 class="mt-4">User: {{ user }}</h3>
+                <h5 class="mt-3">AnyDesk</h5>
+                <table class="table table-striped table-bordered display" id="table1">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Field</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for field, value in rats.get("AnyDesk", {}).items() %}
+                        <tr>
+                            <td>{{ field }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        {% endfor %}
+    </div>
+{% endif %}
+
+
+    {% if connection_trace %}
+        <h3 class="mt-4">Connection Trace Results</h3>
+        <table class="table table-striped table-bordered display" id="table2">
+            <thead class="table-dark">
+                <tr>
+                    <th>Connection type</th>
+                    <th>Timestamp</th>
+                    <th>Authentication</th>
+                    <th>User</th>
+                    <th>AnyDesk Connection ID</th>
+                    <th>Alias</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in connection_trace %}
+                    {% set fields = result.split('#') %}
+                    <tr>
+                        <td>{{ fields[0] }}</td>
+                        <td>{{ fields[1] }}</td>
+                        <td>{{ fields[2] }}</td>
+                        <td>{{ fields[3] }}</td>
+                        <td>{{ fields[4] }}</td>
+                        <td>{{ ','.join(aliases.get(fields[4],"")) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3 class="mt-4">Client IDs from connection trace files</h3>
+        <table class="table table-striped table-bordered display" id="table3">
+            <thead class="table-dark">
+                <tr>
+                    <th>AnyDesk id</th>
+                    <th>Alias</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in client_ids_trace %}
+                    <tr>
+                        <td>{{ client }}</td>
+                        <td>{{ ','.join(aliases.get(client,"")) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if matches %}
+       <h3 class="mt-4">Client IDs from logs</h3>
+        <table class="table table-striped table-bordered display" id="table4">
+            <thead class="table-dark">
+                <tr>
+                    <th>Client ID</th>
+                    <th>From Countries</th>
+                    <th>Alias</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in matches.keys() %}
+                    <tr>
+                        <td><a href="data\\{{ client }}\\{{ client }}.html">{{ client }}</a></td>
+                        <td> {{ countries.get(client) }} </td>
+                        <td>{{ ','.join(aliases.get(client,"")) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+{% if files %}
+       <h3 class="mt-4">All Files transfered</h3>
+        <table class="table table-striped table-bordered display" id="table5">
+            <thead class="table-dark">
+            <tr>
+                    <th>Method</th>
+                    <th>Timestamp</th>
+                    <th>Start/Finish</th>
+                    <th>Download/Upload</th>
+                    <th>FileTransferred</th>
+                    <th>SizeTransferred</th>
+                    <th>LogFile</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in files %}
+                <tr>
+                    {% for data in row.values() %}
+                        <td>{{ data }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}
+{% block javascript %}
+    {{ super() }}
+
+        <script>
+            $(document).ready(function() {
+                $('#table1').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [], // Prevent initial ordering if you want raw data
+                    language: {
+                        search: "Quick search:", // Custom search box text
+                        lengthMenu: "Display _MENU_ entries per page",
+                        zeroRecords: "No matching records found",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)"
+                    }
+                });
+            });
+
+            $(document).ready(function() {
+                $('#table2').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [], // Prevent initial ordering if you want raw data
+                    language: {
+                        search: "Quick search:", // Custom search box text
+                        lengthMenu: "Display _MENU_ entries per page",
+                        zeroRecords: "No matching records found",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)"
+                    }
+                });
+            });
+
+            $(document).ready(function() {
+                $('#table3').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [], // Prevent initial ordering if you want raw data
+                    language: {
+                        search: "Quick search:", // Custom search box text
+                        lengthMenu: "Display _MENU_ entries per page",
+                        zeroRecords: "No matching records found",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)"
+                    }
+                });
+            });
+
+            $(document).ready(function() {
+                $('#table4').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [], // Prevent initial ordering if you want raw data
+                    language: {
+                        search: "Quick search:", // Custom search box text
+                        lengthMenu: "Display _MENU_ entries per page",
+                        zeroRecords: "No matching records found",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)"
+                    }
+                });
+            });
+                        $(document).ready(function() {
+                $('#table5').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [], // Prevent initial ordering if you want raw data
+                    language: {
+                        search: "Quick search:", // Custom search box text
+                        lengthMenu: "Display _MENU_ entries per page",
+                        zeroRecords: "No matching records found",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)"
+                    }
+                });
+            });
+        </script>
+{% endblock %}

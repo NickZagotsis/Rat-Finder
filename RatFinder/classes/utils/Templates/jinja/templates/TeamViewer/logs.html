@@ -1,0 +1,81 @@
+{% extends 'base.jinja' %}
+{% block content %}
+{#{{ logs }}#}
+{##}
+{##}
+{#{{ connections }}#}
+{##}
+{#{{ rollout }}#}
+
+<div class="mt-4">
+<h1 class="text-center">Forensic Report</h1>
+
+<!-- Teamviewer Section -->
+<h2 class="text-left">TeamViewer</h2>
+
+{% if logs %}
+    <h3 class="mt-4">LogResults</h3>
+    <table class="table table-striped table-bordered display" id="table">
+        <thead class="table-dark">
+            <tr>
+                <th>Timestamp</th>
+                <th>PPID</th>
+                <th>PID</th>
+                <th>LogLevel</th>
+                <th>Log</th>
+                <th>Explanation</th>
+                <th>ID</th>
+                <th>IPs</th>
+                <th>OS</th>
+                <th>UserAccount</th>
+                <th>LogFile</th>
+        </thead>
+        <tbody>
+            {% for file in logs.keys() %}
+
+                    {% for session in  logs.get(file,[]) %}
+                        {% for row in session.get("Data") %}
+                            <tr>
+                                <td>{{ row.get("Timestamp") }}</td>
+                                <td>{{ row.get("PPID") }}</td>
+                                <td>{{ row.get("PID") }}</td>
+                                <td>{{ row.get("LogLevel") }}</td>
+                                <td>{{ row.get("Log") }}</td>
+                                <td>{{ row.get("Explanation") }}</td>
+                                <td>{{ session.get("ID") }}</td>
+                                <td>{{ session.get("IPS") }}</td>
+                                <td>{{ session.get("OS") }}</td>
+                                <td>{{ session.get("UserAccount") }}</td>
+                                <td> {{  file }} </td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+</div>
+
+{% endblock %}
+{% block javascript %}
+{{ super() }}
+    <script>
+        $(document).ready(function() {
+            $('#table2').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [], // Prevent initial ordering if you want raw data
+                language: {
+                    search: "Quick search:", // Custom search box text
+                    lengthMenu: "Display _MENU_ entries per page",
+                    zeroRecords: "No matching records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                }
+            });
+        });
+    </script>
+{% endblock %}

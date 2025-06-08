@@ -1,0 +1,314 @@
+import tkinter as tk
+from os import getcwd
+from tkinter import ttk
+from zoneinfo import available_timezones, ZoneInfo
+from tkinter import messagebox, filedialog
+from ttkwidgets.autocomplete import AutocompleteCombobox
+
+
+class Controller:
+    """
+    Controller class to handle the GUI logic and interactions.
+    """
+    def __init__(self, gui, shared_):
+        """
+        Initialize the Controller with the GUI instance and shared data.
+        Parameters
+        ----------
+        gui: GUI
+            GUI instance to interact with.
+        shared_: Shared
+            Shared data instance to store user selections.
+        """
+        self.gui = gui
+        self.shared = shared_
+
+    def toggle_input_field(self):
+        """
+        Enable or disable the input button based on the selected directory listing option.
+        Returns
+        -------
+
+        """
+        if self.gui.dirlisting_var.get() == "Full":
+            self.gui.input_button.state(["!disabled"])
+        else:
+            self.gui.input_button.state(["disabled"])
+
+
+    def start(self):
+        """
+        Start the RAT Finder process by gathering user inputs and closing the GUI.
+        Returns
+        -------
+
+        """
+        if not self.gui.get_rats():
+            self.gui.messagebox.showerror("Error", "Please select at least one RAT.")
+            return
+        # if not self.gui.get_modules():
+        #     self.gui.messagebox.showerror("Error", "Please select at least one module.")
+        #     return
+        if not self.gui.get_reports():
+            self.gui.messagebox.showerror("Error", "Please select at least one report.")
+            return
+
+        dirlist_opt = self.gui.get_directory_listing()
+
+        if dirlist_opt == "Only known locations":
+            self.shared.full = False
+
+        self.shared.output = self.gui.output_dir
+        self.shared.input = self.gui.input_dir.replace('/', '\\')
+        self.shared.no_logging = self.gui.nolog
+        self.shared.rats = self.gui.get_rats()
+        self.shared.modules = self.gui.modules
+        self.shared.reports = self.gui.get_reports()
+        self.shared.timezone = self.gui.get_timezone()
+
+        if 'All' in self.shared.rats:
+            self.shared.rats = self.gui.rats[1:] # Remove "All" from the list
+        if 'All' in self.shared.modules:
+            self.shared.modules = self.gui.modules[1:] # Remove "All" from the list
+        if 'All' in self.shared.reports:
+            self.shared.reports = self.gui.reports[1:] # Remove "All" from the list
+        #self.gui.messagebox.showinfo("Selected Reports", ", ".join(self.shared.reports))
+
+        self.gui.root.destroy()
+
+class GUI:
+    """
+    GUI class to create and manage the graphical user interface for the RAT Finder application.
+    """
+
+
+    def __init__(self, shared = None):
+        self.rats = ["All","AnyDesk","TeamViewer"]
+        self.reports = ['All', 'HTML', 'EXCEL', 'CSV']
+        self.dirlisting_type = ["Only known locations","Full"]
+        self.modules = ["All","Known Logs", "Registry"]
+        self.nolog = True
+        # Create main window
+        self.root = tk.Tk()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.root.title("RatFinder")
+        self.center(500, 600)
+        self.root.resizable(False, False)  # Prevent resizing
+
+        self.menu = tk.Menu(self.root)
+        self.settings = tk.Menu(self.menu, tearoff=False)
+        self.settings.add_command(label="No logging", command=self.no_log)
+
+        self.menu.add_cascade(label="Settings", menu=self.settings)
+        self.root.config(menu=self.menu)
+
+        # Main frame for padding
+        main_frame = ttk.Frame(self.root, padding="10 10 10 10")
+        main_frame.pack(fill="both", expand=True)
+
+        # Timezone Selection
+        timezone_frame = ttk.LabelFrame(main_frame, text="Select Timezone", padding="10 10 10 10")
+        timezone_frame.pack(fill="x", pady=5)
+
+        self.timezones = sorted(available_timezones())
+        self.selected_timezone = tk.StringVar(value="Europe/Athens")
+
+        self.timezone_combobox = AutocompleteCombobox(timezone_frame, textvariable=self.selected_timezone,
+                                                      completevalues=self.timezones)
+        self.timezone_combobox.pack(fill="x")
+
+
+
+        # Input Directory Selection
+        self.input_dir = getcwd()
+        self.input_label = ttk.Label(main_frame, text=f"Input Directory: {self.input_dir}", anchor="w")
+        self.input_label.pack(fill="x", pady=2)
+        self.input_button = ttk.Button(main_frame, text="Select Input Directory", command=self.select_input_dir)
+        self.input_button.state(["disabled"])
+        self.input_button.pack(pady=5)
+
+        # Output Directory Selection
+        self.output_dir = getcwd()
+        self.output_label = ttk.Label(main_frame, text=f"Output Directory: {self.output_dir}", anchor="w")
+        self.output_label.pack(fill="x", pady=2)
+        self.output_button = ttk.Button(main_frame, text="Select Output Directory", command=self.select_output_dir)
+        self.output_button.pack(pady=5)
+
+        # Rats Selection
+        self.rat_checkboxes = self.create_frames(main_frame, "Select RATs",self.rats)
+
+        # Modules Selection
+        #self.modules_checkboxes = self.create_frames(main_frame, "Select Modules", self.modules)
+
+        #Reports checkboxes
+        self.reports_checkboxes = self.create_frames(main_frame, "Select Reports", self.reports)
+        self.controller = Controller(self, shared)
+
+
+        self.dirlisting_var = tk.StringVar(value="Only known locations")
+
+        dirlisting_frame = ttk.LabelFrame(main_frame, text="Directory Listing", padding="10 10 10 10")
+        dirlisting_frame.pack(fill="x", pady=5)
+
+        for option in self.dirlisting_type:
+            rb = ttk.Radiobutton(
+                dirlisting_frame, text=option, value=option,
+                variable=self.dirlisting_var, command=self.controller.toggle_input_field
+            )
+            rb.pack(anchor="w")
+
+        self.directory_listing = [(opt, tk.IntVar(value=1 if opt == "Only known locations" else 0)) for opt in self.dirlisting_type]
+
+        self.messagebox = messagebox
+        self.start_button = ttk.Button(main_frame, text="Start", command=self.controller.start)
+        self.start_button.pack(pady=5)
+
+
+        # Run the application
+        self.root.mainloop()
+
+    def get_timezone(self):
+        return ZoneInfo(self.selected_timezone.get())
+
+    def center(self, width, height):
+        """
+        Center the window on the screen with the given width and height.
+        Parameters
+        ----------
+        width: int
+        height: int
+
+        Returns
+        -------
+
+        """
+        screen_width = self.root.winfo_screenwidth()  # Width of the screen
+        screen_height = self.root.winfo_screenheight()  # Height of the screen
+        # Calculate Starting X and Y coordinates for Window
+        x = (screen_width / 2) - (width / 2)
+        y = (screen_height / 2) - (height / 2)
+        self.root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+    @staticmethod
+    def create_frames(main_frame, text, given_list):
+        """
+        Create a frame with checkboxes for the given list of options.
+        Parameters
+        ----------
+        main_frame: ttk.Frame
+            The main frame to pack the checkboxes into.
+        text: str
+            The label for the frame.
+        given_list: list[str]
+            List of options to create checkboxes for.
+
+        Returns
+        -------
+
+        """
+        frame = ttk.LabelFrame(main_frame, text=text, padding="10 10 10 10")
+        frame.pack(fill="x", pady=5)
+        return GUI.create_checkboxes(frame, given_list)
+
+    def on_closing(self):
+        """
+        Handle the window close event.
+        Returns
+        -------
+
+        """
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.root.destroy()
+            exit(0)
+
+    def no_log(self):
+        """
+        Toggle the logging option.
+        Returns
+        -------
+
+        """
+        self.nolog = not self.nolog
+        messagebox.showinfo("No logging", f"Logging has been {'disabled' if self.nolog else 'enabled'}")
+
+    @staticmethod
+    def create_checkboxes(parent, options):
+        """
+        Create checkboxes for the given options and pack them into the parent frame.
+        Parameters
+        ----------
+        parent: ttk.Frame
+        options: list[str]
+
+        Returns
+        -------
+
+        """
+        checkboxes = []
+        for option in options:
+            var = tk.IntVar()
+            if option == "All" or option == "Only known locations":
+                var.set(1)
+
+            cb = ttk.Checkbutton(parent, text=option, variable=var)
+            cb.pack(anchor="w")
+            checkboxes.append((option, var))
+        return checkboxes
+
+    def get_rats(self):
+        """
+        Get the selected RATs from the checkboxes.
+        Returns
+        -------
+
+        """
+        selected = [rat for rat, var in self.rat_checkboxes if var.get()]
+        return selected
+        #messagebox.showinfo("Selected RATs", ", ".join(selected) if selected else "No RATs selected")
+
+    def get_reports(self):
+        """
+        Get the selected report options from the checkboxes.
+        Returns
+        -------
+
+        """
+        selected = [report for report, var in self.reports_checkboxes if var.get()]
+        return selected
+
+    # def get_modules(self):
+    #     selected = [module for module, var in self.modules_checkboxes if var.get()]
+    #     return selected
+        #messagebox.showinfo("Selected Modules", ", ".join(selected) if selected else "No modules selected")
+
+    def get_directory_listing(self):
+        """
+        Get the selected directory listing option.
+        Returns
+        -------
+            str:
+                Dirlisting option
+        """
+        return self.dirlisting_var.get()
+
+    def select_output_dir(self):
+        """
+        Open a file dialog to select the output directory.
+        Returns
+        -------
+
+        """
+        self.output_dir = filedialog.askdirectory().replace("/", "\\")
+        if self.output_dir:
+            self.output_label.config(text=f"Output Directory: {self.output_dir}")
+
+    def select_input_dir(self):
+        """
+        Open a file dialog to select the input directory.
+        Returns
+        -------
+
+        """
+        self.input_dir = filedialog.askdirectory().replace("/", "\\")
+        if self.input_dir:
+            self.input_label.config(text=f"Input Directory: {self.input_dir}")
