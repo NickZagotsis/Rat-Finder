@@ -37,12 +37,13 @@ class Controller:
             logger (Logger): Logger instance for logging.
         """
         try:
-            if not self.shared.no_logging:
-                self.shared.logger_instance.generate_general_logger()
-                self.shared.logger.bind(category="general").info("Log initiated. General log created")
 
             self.shared.output = pjoin(self.shared.output, "RatFinder_Results", platform.uname()[1],
                                   datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+
+            if not self.shared.no_logging:
+                self.shared.logger_instance.generate_general_logger()
+                self.shared.logger.bind(category="general").info("Log initiated. General log created")
 
             if not self.shared.no_logging:
                 self.shared.logger.bind(category="general").info('Producing directory listing...')
@@ -104,6 +105,8 @@ class Controller:
         self.gui.output_button.state([toggle])
         self.gui.input_button.state([toggle])
         self.gui.start_button.state([toggle])
+
+        self.toggle_input_field()
 
     def start(self):
         """

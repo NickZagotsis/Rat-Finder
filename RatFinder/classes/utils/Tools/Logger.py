@@ -21,17 +21,16 @@ class Logger:
                    filter=lambda record: record["extra"].get("category") == category)
 
     def generate_general_logger(self):
-        self.__check_directory(path.join(self.shared.output, "logs"))
-        given_path = path.join(self.shared.output, "logs\\General")
+        given_path = path.join(self.shared.output, "logs", "General")
         self.__check_directory(given_path)
         self.__add_new_log(given_path, "general")
 
     def generate_anydesk_logger(self):
-        given_path = path.join(self.shared.output, "logs\\Anydesk")
+        given_path = path.join(self.shared.output, "logs", "Anydesk")
         self.__check_directory(given_path)
         self.__add_new_log(given_path, "anydesk")
 
     def generate_teamviewer_logger(self):
-        given_path = path.join(self.shared.output, "logs\\Teamviewer")
+        given_path = path.join(self.shared.output, "logs", "Teamviewer")
         self.__check_directory(given_path)
         self.__add_new_log(given_path, "teamviewer")
