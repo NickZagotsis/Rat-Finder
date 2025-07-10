@@ -81,13 +81,18 @@ class GUI:
     GUI class to create and manage the graphical user interface for the RAT Finder application.
     """
 
+    def window_pop(self, type_ ,message):
+        if type_ == "Error":
+            self.messagebox.showerror("Error", message)
+        elif type_ == "Success":
+            self.messagebox.showinfo("Success", message)
 
     def __init__(self, shared = None):
         self.rats = ["All","AnyDesk","TeamViewer"]
         self.reports = ['All', 'HTML', 'EXCEL', 'CSV']
         self.dirlisting_type = ["Only known locations","Full"]
         self.modules = ["All","Known Logs", "Registry"]
-        self.nolog = True
+        self.nolog = False
         # Create main window
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -97,7 +102,7 @@ class GUI:
 
         self.menu = tk.Menu(self.root)
         self.settings = tk.Menu(self.menu, tearoff=False)
-        self.settings.add_command(label="No logging", command=self.no_log)
+        self.settings.add_command(label="Toggle logging", command=self.no_log)
 
         self.menu.add_cascade(label="Settings", menu=self.settings)
         self.root.config(menu=self.menu)
@@ -162,7 +167,6 @@ class GUI:
         self.messagebox = messagebox
         self.start_button = ttk.Button(main_frame, text="Start", command=self.controller.start)
         self.start_button.pack(pady=5)
-
 
         # Run the application
         self.root.mainloop()

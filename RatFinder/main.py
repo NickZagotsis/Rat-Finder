@@ -81,18 +81,28 @@ def main():
     Main function to initialize the application.
     It sets up the shared instance, logger, and GUI, and then calls the parse function to process RATs.
     """
+    ended_gracefully = True
 
     require_admin()
     shared = Shared()
     logger = Logger(shared)
-    GUI(shared)
+    gui = GUI(shared)
 
     shared.output = pjoin(shared.output, "RatFinder_Results", platform.uname()[1],datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
 
     if not shared.no_logging:
         logger.generate_general_logger()
         shared.logger.bind(category="general").info("Log initiated. General log created")
-    parse(shared, logger)
+    try:
+        parse(shared, logger)
+    except Exception as e:
+        gui.window_pop("Error",f"Uncaught exception: {str(e)}")
+        ended_gracefully = False
+
+    if ended_gracefully:
+        gui.window_pop("Success",f"Program finished with no error.")
+
+
 
 if __name__ == "__main__":
     main()

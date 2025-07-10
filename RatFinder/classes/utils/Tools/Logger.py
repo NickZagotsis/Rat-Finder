@@ -1,5 +1,5 @@
 from loguru import logger
-from os import path, mkdir
+from os import path, makedirs
 from datetime import datetime
 
 class Logger:
@@ -14,10 +14,10 @@ class Logger:
     @staticmethod
     def __check_directory(given_path):
         if not path.isdir(given_path):
-            mkdir(given_path)
+            makedirs(given_path)
 
     def __add_new_log(self, folder, category):
-        self.shared.logger.add(path.join(folder, self.time), rotation="1 MB", backtrace=True, diagnose=True,
+        self.shared.logger.add(path.join(folder, category+".log"), rotation="1 MB", backtrace=True, diagnose=True,
                    filter=lambda record: record["extra"].get("category") == category)
 
     def generate_general_logger(self):
