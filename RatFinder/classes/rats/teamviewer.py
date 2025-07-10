@@ -518,3 +518,5 @@ class Teamviewer:
         self.attribute_connections_w_logs_to_actors()
         self.get_actor_ips()
         self.shared.reporting.report(self)
+        if not self.shared.no_logging:
+            self.log('TeamViewer parsing completed...')

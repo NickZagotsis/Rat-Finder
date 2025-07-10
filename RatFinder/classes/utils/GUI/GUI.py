@@ -1,17 +1,18 @@
+import sys
 import platform
 import threading
 import tkinter as tk
 from os import getcwd
+from time import sleep
 from tkinter import ttk
 from datetime import datetime
-from zoneinfo import available_timezones, ZoneInfo
-from tkinter import messagebox, filedialog
-from ttkwidgets.autocomplete import AutocompleteCombobox
-from RatFinder.classes.rats.teamviewer import Teamviewer
-from RatFinder.classes.utils.Tools.Directory_Listing import DirectoryListing
-from RatFinder.classes.rats.anydesk import Anydesk
 from os.path import join as pjoin
-
+from tkinter import messagebox, filedialog
+from RatFinder.classes.rats.anydesk import Anydesk
+from zoneinfo import available_timezones, ZoneInfo
+from RatFinder.classes.rats.teamviewer import Teamviewer
+from ttkwidgets.autocomplete import AutocompleteCombobox
+from RatFinder.classes.utils.Tools.Directory_Listing import DirectoryListing
 class Controller:
     """
     Controller class to handle the GUI logic and interactions.
@@ -74,13 +75,14 @@ class Controller:
 
         except Exception as e:
             self.shared.logger.bind(category="general").error(f"Uncaught exception: {str(e)}")
-            self.gui.root.after(0, lambda: self.gui.window_pop("Error",f"Uncaught exception: {str(e)}"))
+            self.gui.window_pop("Error",f"Uncaught exception: {str(e)}")
         else:
             self.shared.logger.bind(category="general").success(f"Program finished with no errors.")
-            self.gui.root.after(0, lambda: self.gui.window_pop("Success",f"Program finished with no errors."))
-        finally:
             self.gui.root.after(0, lambda: self.gui.update_progress(100))
-            self.gui.root.after(0, lambda: self.parsing_buttons_toggle("!disabled"))
+            sleep(0.2)
+            self.gui.window_pop("Success",f"Program finished with no errors.")
+            self.gui.root.destroy()
+
 
     def toggle_input_field(self):
         """
@@ -105,8 +107,6 @@ class Controller:
         self.gui.output_button.state([toggle])
         self.gui.input_button.state([toggle])
         self.gui.start_button.state([toggle])
-
-        self.toggle_input_field()
 
     def start(self):
         """
@@ -147,6 +147,7 @@ class Controller:
 
         self.parsing_buttons_toggle("disabled")
         t = threading.Thread(target=self.parse, args=(self.shared.logger_instance,))
+        t.daemon = True
         t.start()
         #t.join() Do not use unless you want blocking
 
