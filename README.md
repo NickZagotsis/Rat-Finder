@@ -54,7 +54,8 @@ There are two ways to run RatFinder:
     
     ```bash
    pip install -r requirements.txt
-   python main.py
+   cd ..
+   python -m RatFinder.main
    ```
 
 2. **Using the pre-built binary**
