@@ -131,3 +131,4 @@ See the [LICENSE](./LICENSE) file for full terms.
 Bachelor’s Thesis – Department of Informatics, University of Piraeus (2025)
 
 GitHub: [@NickZagotsis](https://github.com/NickZagotsis)
+Thesis: https://dione.lib.unipi.gr/xmlui/handle/unipi/18042
